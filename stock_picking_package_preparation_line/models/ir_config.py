@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #    Author: Francesco Apruzzese
 #    Copyright 2015 Apulia Software srl
 #    Copyright 2015 Lorenzo Battistini - Agile Business Group
@@ -10,7 +9,7 @@ from odoo import models, fields, api
 
 class StockConfigSettings(models.TransientModel):
 
-    _inherit = 'stock.config.settings'
+    _inherit = 'res.config.settings'
 
     default_picking_type_for_package_preparation_id = fields.Many2one(
         'stock.picking.type',

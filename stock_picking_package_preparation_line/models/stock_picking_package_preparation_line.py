@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #    Author: Francesco Apruzzese
 #    Copyright 2015 Apulia Software srl
 #    Copyright 2015 Lorenzo Battistini - Agile Business Group
@@ -33,9 +32,9 @@ class StockPickingPackagePreparationLine(models.Model):
         'stock.production.lot', 'Lot',
         help="Used to specify lot when line is created using package "
              "preparation")
-    lot_ids = fields.Many2many(
-        'stock.production.lot', related='move_id.lot_ids', readonly=True,
-        string="Moved lots", help="Lots effectively linked to stock move")
+    #lot_ids = fields.Many2many(
+    #    'stock.production.lot', related='move_id.lot_ids', readonly=True,
+    #    string="Moved lots", help="Lots effectively linked to stock move")
     sequence = fields.Integer(default=10)
     note = fields.Text()
 
@@ -81,8 +80,8 @@ class StockPickingPackagePreparationLine(models.Model):
                         'product_id': move_line.product_id.id,
                         'product_uom_qty': move_line.product_uom_qty,
                         'product_uom_id': move_line.product_uom.id,
-                        'lot_id': move_line.lot_ids[0].id
-                        if len(move_line.lot_ids) == 1 else False,
+                        #'lot_id': move_line.lot_ids[0].id
+                        #if len(move_line.lot_ids) == 1 else False,
                         })
         return lines
 

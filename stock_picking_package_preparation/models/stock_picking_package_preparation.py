@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2015 Guewen Baconnier
 # Copyright 2016 Lorenzo Battistini - Agile Business Group
 # Copyright 2016 Alessio Gerace - Agile Business Group
@@ -78,9 +77,9 @@ class StockPickingPackagePreparation(models.Model):
         default=_default_company_id,
     )
     pack_operation_ids = fields.One2many(
-        comodel_name='stock.pack.operation',
-        compute='_compute_pack_operation_ids',
-        readonly=True,
+       comodel_name='stock.move.line',
+       compute='_compute_pack_operation_ids',
+       readonly=True,
     )
     package_id = fields.Many2one(
         comodel_name='stock.quant.package',
@@ -102,8 +101,7 @@ class StockPickingPackagePreparation(models.Model):
     )
 
     @api.multi
-    @api.depends('package_id',
-                 'package_id.children_ids')
+    @api.depends('package_id')
     def _compute_quant_ids(self):
         for preparation in self:
             package = preparation.package_id
@@ -111,25 +109,24 @@ class StockPickingPackagePreparation(models.Model):
 
     @api.multi
     @api.depends('package_id',
-                 'package_id.children_ids',
                  'package_id.quant_ids')
     def _compute_weight(self):
         for preparation in self:
             package = preparation.package_id
             if not package:
                 return
-            quants = package.get_content()
+            quants = package.quant_ids
             # weight of the products only
             weight = sum(l.product_id.weight * l.qty for l in quants)
             preparation.weight = weight
 
     @api.multi
     @api.depends('picking_ids',
-                 'picking_ids.pack_operation_ids')
+                 'picking_ids.move_line_ids')
     def _compute_pack_operation_ids(self):
         for preparation in self:
             preparation.pack_operation_ids = preparation.mapped(
-                'picking_ids.pack_operation_ids')
+               'picking_ids.move_line_ids')
 
     @api.multi
     def action_done(self):
@@ -138,7 +135,7 @@ class StockPickingPackagePreparation(models.Model):
                 _('The package has not been generated.')
             )
         for picking in self.picking_ids:
-            picking.do_transfer()
+            picking.button_validate()
         self.write({'state': 'done', 'date_done': fields.Datetime.now()})
 
     @api.multi
@@ -179,7 +176,6 @@ class StockPickingPackagePreparation(models.Model):
                 _('All the transfers must have the same destination location')
             )
         values = {
-            'packaging_id': self.packaging_id.id,
             'location_id': location.id,
         }
         return values
@@ -187,30 +183,10 @@ class StockPickingPackagePreparation(models.Model):
     @api.multi
     def _generate_pack(self):
         self.ensure_one()
-        pack_model = self.env['stock.quant.package']
-        moves = self.env['stock.move']
-        operation_model = self.env['stock.pack.operation']
-
         if any(picking.state != 'assigned' for picking in self.picking_ids):
             raise UserError(
                 _('All the transfers must be "Ready to Transfer".')
             )
-
-        operations = operation_model.browse()
-        for picking in self.picking_ids:
-            if not picking.pack_operation_ids:
-                picking.do_prepare_partial()
-            operations |= picking.pack_operation_ids
-
-        for operation in operations:
-            for record in operation.linked_move_operation_ids:
-                moves |= record.move_id
-            for move in moves:
-                moves.check_tracking(operation)
-
-            operation.qty_done = operation.product_qty
-
-        pack = pack_model.create(self._prepare_package())
-
-        operations.write({'result_package_id': pack.id})
-        self.package_id = pack.id
+        location_id = self._prepare_package()['location_id']
+        self.package_id = self.picking_ids.put_in_pack()
+        self.package_id.location_id = location_id

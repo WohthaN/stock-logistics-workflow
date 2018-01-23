@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2015 Guewen Baconnier
 # Copyright 2016 Lorenzo Battistini - Agile Business Group
 # Copyright 2016 Alessio Gerace - Agile Business Group
