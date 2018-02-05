@@ -18,7 +18,7 @@ class StockPickingPackagePreparationLine(models.Model):
         'stock.picking.package.preparation', string='Package Preparation',
         ondelete='cascade', required=True)
     name = fields.Text(string='Description', required=True)
-    move_id = fields.Many2one('stock.move', string='Stock Move',
+    move_id = fields.Many2one('stock.move.line', string='Stock Move Line',
                               ondelete='cascade')
     product_id = fields.Many2one('product.product', string='Product')
     product_uom_qty = fields.Float(
@@ -32,9 +32,6 @@ class StockPickingPackagePreparationLine(models.Model):
         'stock.production.lot', 'Lot',
         help="Used to specify lot when line is created using package "
              "preparation")
-    #lot_ids = fields.Many2many(
-    #    'stock.production.lot', related='move_id.lot_ids', readonly=True,
-    #    string="Moved lots", help="Lots effectively linked to stock move")
     sequence = fields.Integer(default=10)
     note = fields.Text()
 
@@ -65,7 +62,7 @@ class StockPickingPackagePreparationLine(models.Model):
             return lines
         picking_model = self.env['stock.picking']
         for picking in picking_model.browse(picking_ids):
-            for move_line in picking.move_lines:
+            for move_line in picking.move_line_ids:
                 # If stock move is cancel, don't create package
                 # preparation line
                 if move_line.state == 'cancel':
@@ -76,12 +73,11 @@ class StockPickingPackagePreparationLine(models.Model):
                                    count=True):
                     lines.append({
                         'move_id': move_line.id,
-                        'name': move_line.name,
+                        'name': move_line.move_id.name,
                         'product_id': move_line.product_id.id,
                         'product_uom_qty': move_line.product_uom_qty,
-                        'product_uom_id': move_line.product_uom.id,
-                        #'lot_id': move_line.lot_ids[0].id
-                        #if len(move_line.lot_ids) == 1 else False,
+                        'product_uom_id': move_line.product_uom_id.id,
+                        'lot_id': move_line.lot_id.id
                         })
         return lines
 
