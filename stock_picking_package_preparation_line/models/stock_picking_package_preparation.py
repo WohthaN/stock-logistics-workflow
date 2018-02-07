@@ -83,7 +83,6 @@ class StockPickingPackagePreparation(models.Model):
         Delete package preparation line if the relative picking is
         delete from package preparation
         """
-        import ipdb;ipdb.set_trace()
         if values.get('picking_ids', False):
             package_preparation_line_model = self.env[
                 'stock.picking.package.preparation.line']
