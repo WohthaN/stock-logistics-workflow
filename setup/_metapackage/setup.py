@@ -11,8 +11,10 @@ setuptools.setup(
         'odoo11-addon-stock_no_negative',
         'odoo11-addon-stock_pack_operation_auto_fill',
         'odoo11-addon-stock_picking_invoice_link',
+        'odoo11-addon-stock_picking_restrict_cancel_with_orig_move',
         'odoo11-addon-stock_picking_show_backorder',
         'odoo11-addon-stock_picking_show_return',
+        'odoo11-addon-stock_split_picking',
     ],
     classifiers=[
         'Programming Language :: Python',
